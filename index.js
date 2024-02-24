@@ -61,19 +61,40 @@ function staticUsers(){
 }
 
 // Function to generate and write HTML file
-async function generateWebsite() {
-    const teamMembers = staticUsers();
+async function generateWebsite(teamMembers) {
     console.log(`teamMembers: ${JSON.stringify(teamMembers, null, 2)}`);
     const htmlContent = render(teamMembers);
 
-    // Ensure the output directory exists
     if (!fs.existsSync(OUTPUT_DIR)) {
         fs.mkdirSync(OUTPUT_DIR, { recursive: true });
     }
 
-    // Now we can safely write the file since the directory exists
     fs.writeFileSync(outputPath, htmlContent, 'utf-8');
     console.log('Team website generated! Check the output folder for team.html');
 }
 
-generateWebsite().catch(err => console.error(err));
+/**
+ * Main function to decide which function to call based on command-line arguments
+ * and show usage if the wrong argument is provided
+ */
+async function main() {
+    const validArgs = ['-s', '--sample'];
+    const args = process.argv.slice(2); // Exclude the first two default arguments
+    let teamMembers;
+
+    // Check if any argument is provided and if it's valid
+    if (args.length === 0) {
+        teamMembers = await promptUser();
+    } else if (args.some(arg => validArgs.includes(arg))) {
+        teamMembers = staticUsers();
+    } else {
+        // If an invalid argument is provided, show usage message and exit
+        console.log("Invalid argument provided.");
+        console.log("Usage: node index.js [-s | --sample]");
+        console.log("       -s, --sample   Use sample team members instead of prompting for input");
+        return;
+    }
+    await generateWebsite(teamMembers).catch(err => console.error(err));
+}
+
+main(); // Call the main function
