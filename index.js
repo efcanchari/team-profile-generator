@@ -49,10 +49,29 @@ async function promptUser() {
     return teamMembers;
 }
 
+function staticUsers(){
+    let teamMembers = [];
+    let manager = new Manager("Jorge","ED00000","manager@gmail.com","34RSW233");
+    let engineer = new Engineer("Matt","ED00001","engineer@gmail.com","@engineer");
+    let intern = new Intern("Peter","ED00002","intern@gmail.com","UCL");
+    teamMembers.push(manager);
+    teamMembers.push(engineer);
+    teamMembers.push(intern);
+    return teamMembers
+}
+
 // Function to generate and write HTML file
 async function generateWebsite() {
-    const teamMembers = await promptUser();
+    const teamMembers = staticUsers();
+    console.log(`teamMembers: ${JSON.stringify(teamMembers, null, 2)}`);
     const htmlContent = render(teamMembers);
+
+    // Ensure the output directory exists
+    if (!fs.existsSync(OUTPUT_DIR)) {
+        fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+    }
+
+    // Now we can safely write the file since the directory exists
     fs.writeFileSync(outputPath, htmlContent, 'utf-8');
     console.log('Team website generated! Check the output folder for team.html');
 }
