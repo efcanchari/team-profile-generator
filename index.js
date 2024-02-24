@@ -15,48 +15,119 @@ const outputPath = path.join(OUTPUT_DIR, 'team.html');
 
 // Function to prompt user for team information
 async function promptUser() {
-    const teamMembers = [];
+    const roleChoices = [
+        { name: 'Engineer', value: 'Engineer' },
+        { name: 'Manager', value: 'Manager' },
+        { name: 'Intern', value: 'Intern' }
+    ];
 
-    // Example: Prompt for a manager
-    const { name, id, email, officeNumber } = await inquirer.prompt([
+    const { role } = await inquirer.prompt([
+        {
+            type: 'list',
+            name: 'role',
+            message: "What is the employee's role?",
+            choices: roleChoices
+        }
+    ]);
+
+    const questions = [
         {
             type: 'input',
             name: 'name',
-            message: "What is the team manager's name?"
+            message: `What is the ${role}'s name?`
         },
         {
             type: 'input',
             name: 'id',
-            message: "What is the team manager's id?"
+            message: `What is the ${role}'s id?`
         },
         {
             type: 'input',
             name: 'email',
-            message: "What is the team manager's email?"
-        },
-        {
+            message: `What is the ${role}'s email?`
+        }
+    ];
+
+    if (role === 'Manager') {
+        questions.push({
             type: 'input',
             name: 'officeNumber',
-            message: "What is the team manager's office number?"
+            message: "What is the manager's office number?"
+        });
+    } else if (role === 'Engineer') {
+        questions.push({
+            type: 'input',
+            name: 'github',
+            message: "What is the engineer's GitHub username?"
+        });
+    } else if (role === 'Intern') {
+        questions.push({
+            type: 'input',
+            name: 'school',
+            message: "What is the intern's school?"
+        });
+    }
+
+    const answers = await inquirer.prompt(questions);
+
+    if (role === 'Manager') {
+        return new Manager(answers.name, answers.id, answers.email, answers.officeNumber);
+    } else if (role === 'Engineer') {
+        return new Engineer(answers.name, answers.id, answers.email, answers.github);
+    } else if (role === 'Intern') {
+        return new Intern(answers.name, answers.id, answers.email, answers.school);
+    }
+}
+
+async function promptUsers() {
+    let teamMembers = [];
+    let exit = false;
+
+    do {
+        const { action } = await inquirer.prompt([
+            {
+                type: 'list',
+                name: 'action',
+                message: 'What would you like to do?',
+                choices: [
+                    { name: 'Check employees', value: 'check' },
+                    { name: 'Add employee', value: 'add' },
+                    { name: 'Exit app', value: 'exit' }
+                ]
+            }
+        ]);
+
+        switch (action) {
+            case 'check':
+                console.log('Current Team Members:', teamMembers);
+                break;
+            case 'add':
+                const newMember = await promptUser();
+                teamMembers.push(newMember);
+                break;
+            case 'exit':
+                exit = true;
+                break;
+            default:
+                console.log('Invalid action selected.');
         }
-    ]);
-
-    const manager = new Manager(name, id, email, officeNumber);
-    teamMembers.push(manager);
-
-    // Add logic to prompt for other roles (Engineer, Intern) and push them to teamMembers...
+    } while (!exit);
 
     return teamMembers;
 }
 
 function staticUsers(){
     let teamMembers = [];
-    let manager = new Manager("Jorge","ED00000","manager@gmail.com","34RSW233");
-    let engineer = new Engineer("Matt","ED00001","engineer@gmail.com","@engineer");
-    let intern = new Intern("Peter","ED00002","intern@gmail.com","UCL");
+    let manager = new Manager("Jared","MA00001","manager@gmail.com","34RSW233");
+    let engineer1 = new Engineer("Alec","EN00001","engineer1@gmail.com","@engineer1");
+    let engineer2 = new Engineer("Grace","EN00002","engineer2@gmail.com","@engineer2");
+    let engineer3 = new Engineer("Tammer","EN00003","engineer3@gmail.com","@engineer3");
+    let intern1 = new Intern("Peter","IN00001","intern1@gmail.com","UCL");
     teamMembers.push(manager);
-    teamMembers.push(engineer);
-    teamMembers.push(intern);
+    teamMembers.push(engineer1);
+    teamMembers.push(engineer2);
+    teamMembers.push(engineer3);
+    teamMembers.push(intern1);
     return teamMembers
 }
 
@@ -84,7 +155,7 @@ async function main() {
 
     // Check if any argument is provided and if it's valid
     if (args.length === 0) {
-        teamMembers = await promptUser();
+        teamMembers = await promptUsers();
     } else if (args.some(arg => validArgs.includes(arg))) {
         teamMembers = staticUsers();
     } else {
